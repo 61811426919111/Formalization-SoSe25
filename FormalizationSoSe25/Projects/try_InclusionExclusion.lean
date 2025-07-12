@@ -101,23 +101,16 @@ theorem inclusion_exclusion_sum_biUnion (s : Finset ι) (S : ι → Finset α) (
 open BigOperators
 open Finset
 
-#check OrderedAddCommGroup
-#check even
-
 variable {ι α G : Type*} [DecidableEq α]
-  [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (k : ℕ) (evenk : 2 ∣ k)
+  [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
 
-/- wie mache ich hier dass die range Funktion bis 2r geht? range (2r) soll {0,1,...,2r-1} sein
-deswegen habe ich im Exponenten in der Summe p statt p-1 (bzw. p+1), weil die Summe jetzt
-mit 0 startet und nicht mit 1 und bis 2r-1 geht statt bis 2r. Die Anzahl der Elemente über die
-abgeschätzt wird bleibt dadurch ja aber gerade.-/
-theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) :
-  ∑ a ∈ s.biUnion S, f a ≥ ∑ p ∈ (range (2r+1)).filter (·.Nonempty), (-1) ^ p • ∑ a ∈ p.inf' S, f a := by sorry
-
+theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G):
+   ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
 
 theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G):
-   ∑ a ∈ s.biUnion S, f a ≤ ∑ t : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2) S, f a := by sorry
+   ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
 
 
 /-- **Inclusion-exclusion principle** for the cardinality of a union.
@@ -131,8 +124,6 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
 
 variable [Fintype α]
 
-theorem incl_excl_sum_biUnion_trunk_test (s : Finset ι) (S : ι → Finset α) (f : α → G):
-   ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+
 
 end Finset
