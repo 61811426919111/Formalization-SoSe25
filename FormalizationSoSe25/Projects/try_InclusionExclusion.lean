@@ -101,16 +101,29 @@ theorem inclusion_exclusion_sum_biUnion (s : Finset ι) (S : ι → Finset α) (
 open BigOperators
 open Finset
 
+lemma sub_nonneg_ge  {γ : Type u} [AddGroup γ] [LE γ] [AddRightMono γ] {d e : γ} :
+d ≥ e ↔ d-e ≥ 0 := by simp
+
 variable {ι α G : Type*} [DecidableEq α]
   [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
 
 theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G):
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
+  classical
+  rw [sub_nonneg_ge]
+  calc
+  sorry
 
 theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G):
    ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
+  classical
+  rw [← sub_nonneg]
+  calc
+    (∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a) - ∑ a ∈ s.biUnion S, f a
+      = sorry
 
 
 /-- **Inclusion-exclusion principle** for the cardinality of a union.
@@ -123,6 +136,9 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
   simpa using inclusion_exclusion_sum_biUnion (G := ℤ) s S (f := 1)
 
 variable [Fintype α]
+
+
+
 
 
 
