@@ -104,23 +104,40 @@ open Finset
 lemma sub_nonneg_ge  {γ : Type u} [AddGroup γ] [LE γ] [AddRightMono γ] {d e : γ} :
 d ≥ e ↔ d-e ≥ 0 := by simp
 
+
+
 variable {ι α G : Type*} [DecidableEq α]
   [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
+
+lemma trunk_in_union (s : Finset ι) (S : ι → Finset α) (f : α → G) :
+  ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a =
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ 1),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
 
 theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G):
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
-  rw [sub_nonneg_ge, inclusion_exclusion_sum_biUnion]
+  rw [sub_nonneg_ge]
   calc
-   ∑ t : s.powerset.filter (·.Nonempty),
-      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a -
+   ∑ a ∈ s.biUnion S, f a -
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a =
-      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t>k), (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
-      rw [sub_eq_neg_add, ← sum_neg_distrib]
-  _≥ 0 := by sorry
-
+      ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by rw [inclusion_exclusion_sum_biUnion]
+  _= ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ 1),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by rw [trunk_in_union]
+  _= ∑ ⟨t,tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^(#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
+      ∑ ⟨t,tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
 
 
 theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G):
@@ -146,7 +163,8 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
 variable [Fintype α]
 
 
-
+theorem Finset.sum_attach {ι : Type u_1} {M : Type u_4} [AddCommMonoid M] (s : Finset ι) (f : ι → M) :
+∑ x ∈ s.attach, f ↑x = ∑ x ∈ s, f x := by sorry
 
 
 
