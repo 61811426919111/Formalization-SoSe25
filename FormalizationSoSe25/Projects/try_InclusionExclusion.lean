@@ -7,6 +7,7 @@ import Mathlib.Tactic
 import Mathlib.Algebra.BigOperators.Pi
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Algebra.Module.BigOperators
+import Mathlib.Data.Set.Basic
 
 /-!
 # Inclusion-exclusion principle
@@ -104,18 +105,25 @@ open Finset
 lemma sub_nonneg_ge  {γ : Type u} [AddGroup γ] [LE γ] [AddRightMono γ] {d e : γ} :
 d ≥ e ↔ d-e ≥ 0 := by simp
 
+/- Tipps and To-Do
 
+Idealerweise gibt es (oder du kannst beweisen) das wenn S eine Menge ist und P und Q zwei Propositionen
+für S sind, und P impliziert Q dann ist S.filter P eine Teilmenge von S.filter Q.
+In unserem Falle sollte die Implikation eigentlich klar sein, es ist ein Fall von (A und B) impliziert A,
+was immer stimmt.
+
+-/
+
+theorem subset {α : Type*} (p q : α → Prop) [DecidablePred p] [DecidablePred q] (s : Finset α) (h: ∀ x, p x → q x) :
+s.filter p ⊆ s.filter q := by
+intro x hx
+simp at hx
+sorry
 
 variable {ι α G : Type*} [DecidableEq α]
   [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
 
-lemma trunk_in_union (s : Finset ι) (S : ι → Finset α) (f : α → G) :
-  ∑ t : s.powerset.filter (·.Nonempty),
-      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a =
-      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ 1),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
-
-theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G):
+theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0):
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
@@ -128,16 +136,22 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
       (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a -
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by rw [inclusion_exclusion_sum_biUnion]
-  _= ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ 1),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+  _=  ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a +
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by rw [trunk_in_union]
-  _= ∑ ⟨t,tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^(#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
-      ∑ ⟨t,tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
+  _=  - ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ #t.1 • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a +
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a  := by simp [pow_succ]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ #t.1 • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a := by simp [← sub_eq_neg_add]
+  _=  ∑ t ∈ s.powerset, (-1) ^ #t •
+          if ht : fun t => t.Nonempty ∧ Finset.card t ≤ k then ∑ a ∈ t.inf' ht S, f a - f a
+          else ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, - f a := by
+      rw [← sum_attach (filter ..)]; simp [sum_dite]
 
 
 theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G):
