@@ -97,8 +97,11 @@ theorem inclusion_exclusion_sum_biUnion (s : Finset ι) (S : ι → Finset α) (
       obtain rfl | hs := s.eq_empty_or_nonempty <;>
         simp [-coe_biUnion, prod_indicator_biUnion_sub_indicator, *]
 
+/- oben: Gleichheit der Gleichung, die ich in die trunkierte Version in Form von Ungleichungen
+umwandeln soll, Beweis dient als Vorlage für meinen Beweis-/
 
-/- trunkierte Version -/
+
+/- mein Projekt: trunkierte Version -/
 open BigOperators
 open Finset
 
@@ -114,15 +117,40 @@ was immer stimmt.
 
 -/
 
-theorem subset {α : Type*} (p q : α → Prop) [DecidablePred p] [DecidablePred q] (s : Finset α) (h: ∀ x, p x → q x) :
+-- das bräuchte ich vermutlich um die Summen zusammenziehen zu können
+lemma subset {α : Type*} (p q : α → Prop) [DecidablePred p] [DecidablePred q] (s : Finset α) (h: ∀ x, p x → q x) :
 s.filter p ⊆ s.filter q := by
-intro x hx
-simp at hx
-sorry
+  intro x
+  simp
+  intro hx hp
+  constructor
+  · exact hx
+  · exact h x hp
+
+/- bräuchte vermutlich eher, dass sich s.filter q disjunkt in s.filter p und s.filter q ∧ ¬p zerlegen lässt,
+aber das bekomme ich nicht vernünftig aufgeschrieben, sodass Lean mich versteht.
+-/
+
+lemma disjunct_subsets {α : Type*} (p q : α → Prop) [DecidablePred p] [DecidablePred q] (s : Finset α) (h: ∀ x, p x → q x) :
+s.filter q = s.filter p ∪ s.filter (q ∧ ¬p) := by sorry
 
 variable {ι α G : Type*} [DecidableEq α]
   [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
 
+lemma nneg_sum_function (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0):
+∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k),
+(-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a ≥
+∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
+(-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+/- das gilt weil die Menge, aus denen die a kommen bei t=k+1 in der Menge von t=k enthalten ist.
+t=k enthält also alle a, die auch in t=k+1 sind, aber sie kann auch noch mehr a enthalten.
+da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion, kann durch einen größeren Wertebereich
+(also bei t=k -> dann ist der Wertebereich größer als bei t=k+1) die Summe über alle Funktionswerte nur größer werden
+oder gleich bleiben.
+-> weiß nur noch nicht wie ich das in lean beweisen soll/kann. -/
+
+
+-- die erste Ungleichung die gezeigt werden soll, gerader Fall der trunkierten Version
 theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0):
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
@@ -148,12 +176,28 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
       ∑ t : s.powerset.filter (·.Nonempty),
       (-1) ^ #t.1 • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a := by simp [← sub_eq_neg_add]
-  _=  ∑ t ∈ s.powerset, (-1) ^ #t •
-          if ht : fun t => t.Nonempty ∧ Finset.card t ≤ k then ∑ a ∈ t.inf' ht S, f a - f a
-          else ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, - f a := by
-      rw [← sum_attach (filter ..)]; simp [sum_dite]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      (∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a) := by sorry
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, (f a - f a) -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  - ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
+  _≥ 0 := by sorry
 
 
+
+/-
+zweite Ungleichung, vermutlich analog zur ersten lösbar, sobald ich die erste gelöst habe
+trunkierte Version im ungeraden Fall
+-/
 theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G):
    ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
@@ -176,7 +220,7 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
 
 variable [Fintype α]
 
-
+-- this is a proven theorem I can already use, but only write it down here so I don't forget what it means
 theorem Finset.sum_attach {ι : Type u_1} {M : Type u_4} [AddCommMonoid M] (s : Finset ι) (f : ι → M) :
 ∑ x ∈ s.attach, f ↑x = ∑ x ∈ s, f x := by sorry
 
