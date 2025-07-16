@@ -50,13 +50,54 @@ namespace Finset
 variable {ι α G : Type*} [DecidableEq α] [AddCommGroup G] {s : Finset ι}
 
 lemma prod_indicator_biUnion_sub_indicator (hs : s.Nonempty) (S : ι → Finset α) (a : α) :
+/-
+hs -> Annahme, dass Menge s nicht leer ist
+S -> Funktion, die jedem Element i vom Typ ι eine endliche Menge (Finset α) zuordnet
+-> man hat eine Familie von endlichen Mengen, die durch S beschrieben wird
+a : α -> a ist ein Element der Menge α, auf die sich die Indikatorfunktionen beziehen
+-/
     ∏ i ∈ s, (Set.indicator (s.biUnion S) 1 a - Set.indicator (S i) 1 a) = (0 : ℤ) := by
+    /-
+    ∏ i ∈ s -> Das ist das Produkt über alle i in der Menge s
+    Set.indicator (s.biUNion S) 1 a -> Indikatorfunktion, ist 1 wenn a in s.biUnion S ist und 0 sonst
+    s.biUnion S -> Vereinigung aller Mengen S i
+    S i -> Menge die i durch die Funktion S zugeordnet wird
+    Set.indicator (S i) 1 a -> Indikatorfunktion, ist 1 wenn a in S i ist und 0 sonst
+    -/
   by_cases ha : a ∈ s.biUnion S
+  /-
+  Fallunterscheidung:
+  Fall 1 ha ist wahr, d.h. a ist in der Vereinigung s.biUnion S
+  Fall 2: ha ist falsch, d.h. a ist nicht in der Vereinigun s.biUnion S
+  -/
   · obtain ⟨i, hi, ha⟩ := mem_biUnion.1 ha
+    /-
+    i ist von Typ ι
+    hi: i ∈ s
+    ha: a ∈ S i
+    -/
     exact prod_eq_zero hi <| by simp [*, -coe_biUnion]
+    /-
+    Finset.prod_eq_zero:  (hi : i ∈ s) (h : f i = 0) : ∏ j ∈ s, f j = 0
+    "<|"" -> Pipe-Operator wie in R: f <| g <| x means f(g(x))
+    simp[*] -> rewrite with all hypothesis
+    Finset.coe_biUnion: ↑(s.biUnion t) = ⋃ x ∈ ↑s, ↑(t x)
+    -/
   · obtain ⟨i, hi⟩ := hs
+    /-
+    i : ι -> i ist vom Typ ι
+    hi : i ∈ s
+    -/
     have ha : a ∉ S i := fun h ↦ ha <| subset_biUnion_of_mem _ hi h
+    /-
+    Finset.subset_biUNion_of_mem:
+    {s : Finset α} [DecidableEq β] (u : α → Finset β) {x : α} (xs : x ∈ s) :
+    u x ⊆ s.biUnion u
+    -/
     exact prod_eq_zero hi <| by simp [*, -coe_biUnion]
+    /-
+    s.oben
+    -/
 
 /-- **Inclusion-exclusion principle** for the sum of a function over a union.
 
@@ -149,6 +190,10 @@ da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion,
 oder gleich bleiben.
 -> weiß nur noch nicht wie ich das in lean beweisen soll/kann. -/
 
+theorem Finset.sum_nonneg {ι : Type u_1} {N : Type u_5} [AddCommMonoid N] [PartialOrder N]
+[IsOrderedAddMonoid N] {f : ι → N} {s : Finset ι} (h : ∀ i ∈ s, 0 ≤ f i) :
+0 ≤ ∑ i ∈ s, f i := by sorry
+--> ist schon bewiesen und kann ich verwenden, hier nur damit ich Bedeutung nachlesen kann
 
 -- die erste Ungleichung die gezeigt werden soll, gerader Fall der trunkierten Version
 theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0):
@@ -190,9 +235,7 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
-  _≥ 0 := by simp [NNReal.tsum_pos, sum_function]
-
-
+  _≥ 0 := by sorry
 
 /-
 zweite Ungleichung, vermutlich analog zur ersten lösbar, sobald ich die erste gelöst habe
@@ -217,6 +260,17 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
     #(s.biUnion S) = ∑ t : s.powerset.filter (·.Nonempty),
       (-1 : ℤ) ^ (#t.1 + 1) * #(t.1.inf' (mem_filter.1 t.2).2 S) := by
   simpa using inclusion_exclusion_sum_biUnion (G := ℤ) s S (f := 1)
+
+theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α):
+    #(s.biUnion S) ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
+  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1)
+
+theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α):
+    #(s.biUnion S) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
+      (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
+  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1)
+
 
 variable [Fintype α]
 
