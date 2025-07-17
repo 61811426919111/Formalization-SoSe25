@@ -173,7 +173,7 @@ aber das bekomme ich nicht vernünftig aufgeschrieben, sodass Lean mich versteht
 -/
 
 lemma disjunct_subsets {α : Type*} (p q : α → Prop) [DecidablePred p] [DecidablePred q] (s : Finset α) (h: ∀ x, p x → q x) :
-s.filter q = s.filter p ∪ s.filter (q ∧ ¬p) := by sorry
+  s.filter q = s.filter p ⊔ s.filter (fun x => q x ∧ ¬ p x) := by sorry
 
 variable {ι α G : Type*} [DecidableEq α]
   [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G]
@@ -194,16 +194,33 @@ lemma sum_int_function (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf
     ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k+1),
         (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
 
+/-
+das Lemma ist glaube ich noch nicht richtig formuliert, eigentlich sollte es nur um die f a gehen, aber ich weiß
+nicht wie ich das in der Summe schreibe, wenn ich kein t zur Verfügung habe.
+-/
+
+lemma nat_ge (n m: ℕ) : n > m ↔ n ≥ m + 1 := by
+  constructor
+  · intro h
+    simp
+    exact h
+  · intro h
+    simp
+    exact h
+
 theorem Finset.sum_nonneg {ι : Type u_1} {N : Type u_5} [AddCommMonoid N] [PartialOrder N]
 [IsOrderedAddMonoid N] {f : ι → N} {s : Finset ι} (h : ∀ i ∈ s, 0 ≤ f i) :
 0 ≤ ∑ i ∈ s, f i := by sorry
 --> ist schon bewiesen und kann ich verwenden, hier nur damit ich Bedeutung nachlesen kann
 
+theorem Finset.sum_attach {ι : Type u_1} {M : Type u_4} [AddCommMonoid M] (s : Finset ι) (f : ι → M) :
+∑ x ∈ s.attach, f ↑x = ∑ x ∈ s, f x := by sorry
+--> this is a proven theorem I can already use, but only write it down here so I don't forget what it means
 
 variable (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r) (r k : ℕ)
 
 -- die erste Ungleichung die gezeigt werden soll, gerader Fall der trunkierten Version
-theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0) (evenk : k ∣ 2) :
+theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0) (evenk : 2 ∣ k) :
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
@@ -237,13 +254,13 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, (f a - f a) -
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
-      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [sub_eq_neg_add]
   _=  - ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ k+1),
-      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by exact rfl
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k+1),
@@ -252,7 +269,9 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
 
 /-
 da erste Summe größer zweite Summe ist Differenz (da zweite Summe durch (-1) ein negatives Vorzeichen bekommt)
-beider positiv-/
+beider positiv
+das wollte ich mit dem obigen Lemma zeigen, aber das ist noch nicht 100%ig passend formuliert.
+-/
 
 /-.
 erster Weg: komme aber im zweiten Fall nicht weiter:
@@ -307,12 +326,15 @@ theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) 
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
   simpa using incl_excl_card_biUnion_trunk_odd (G := ℤ) s S (f := 1) r
 
+/-
+hier bei den Kardinalitäten weiß ich nicht weiter. Iwie stimmt mein Syntax noch nicht,
+theoretisch muss ich nämlich nur die ungleichungen anwenden, aber Lean versteh noch nicht wie ich das meine.
+-/
+
 
 variable [Fintype α]
 
--- this is a proven theorem I can already use, but only write it down here so I don't forget what it means
-theorem Finset.sum_attach {ι : Type u_1} {M : Type u_4} [AddCommMonoid M] (s : Finset ι) (f : ι → M) :
-∑ x ∈ s.attach, f ↑x = ∑ x ∈ s, f x := by sorry
+
 
 
 
