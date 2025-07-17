@@ -176,13 +176,11 @@ lemma disjunct_subsets {α : Type*} (p q : α → Prop) [DecidablePred p] [Decid
 s.filter q = s.filter p ∪ s.filter (q ∧ ¬p) := by sorry
 
 variable {ι α G : Type*} [DecidableEq α]
-  [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G] (r k : ℕ) (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r)
+  [AddCommGroup G] [PartialOrder G] [IsOrderedAddMonoid G]
 
-lemma sum_function (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0):
-∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k),
-(-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a ≥
-∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
-(-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+lemma sum_function (s t : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) (k : ℕ) (hst : t ⊆ s):
+∑ a ∈ s.biUnion S, f a ≥ ∑ a ∈ t.biUnion S, f a := by
+  sorry
 /- das gilt weil die Menge, aus denen die a kommen bei t=k+1 in der Menge von t=k enthalten ist.
 t=k enthält also alle a, die auch in t=k+1 sind, aber sie kann auch noch mehr a enthalten.
 da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion, kann durch einen größeren Wertebereich
@@ -190,13 +188,22 @@ da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion,
 oder gleich bleiben.
 -> weiß nur noch nicht wie ich das in lean beweisen soll/kann. -/
 
+lemma sum_int_function (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) (k : ℕ) (evenk: 2 ∣ k):
+∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a ≥
+    ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k+1),
+        (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+
 theorem Finset.sum_nonneg {ι : Type u_1} {N : Type u_5} [AddCommMonoid N] [PartialOrder N]
 [IsOrderedAddMonoid N] {f : ι → N} {s : Finset ι} (h : ∀ i ∈ s, 0 ≤ f i) :
 0 ≤ ∑ i ∈ s, f i := by sorry
 --> ist schon bewiesen und kann ich verwenden, hier nur damit ich Bedeutung nachlesen kann
 
+
+variable (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r) (r k : ℕ)
+
 -- die erste Ungleichung die gezeigt werden soll, gerader Fall der trunkierten Version
-theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0):
+theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0) (evenk : k ∣ 2) :
    ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
@@ -235,13 +242,42 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ k+1),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k+1),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
   _≥ 0 := by sorry
+
+/-
+da erste Summe größer zweite Summe ist Differenz (da zweite Summe durch (-1) ein negatives Vorzeichen bekommt)
+beider positiv-/
+
+/-.
+erster Weg: komme aber im zweiten Fall nicht weiter:
+    apply Finset.sum_nonneg
+    intro t tcond
+    simp only [Int.reduceNeg]
+    refine zsmul_nonneg ?_ ?_
+    · apply Finset.sum_nonneg
+      intro a ha
+      exact hf a
+    · refine Even.pow_nonneg ?_ (-1)
+      obtain ⟨x, hxk⟩ := t
+-> da ich evenk nicht anwenden kann. Denke die Fallunterscheidung ist nicht hilfreich.
+
+zweiter Versuch - Plan: versuche erst zu zeigen dass das kleinstmögliche t, dass die Bedingung t>k erfüllt, die größte
+Summe der ausgewerteten Funktion hat, also das Vorzeichen entscheidet.
+Dann das kleinste t>k bestimmen (da k in ℕ muss auch t in ℕ sein), also t=k+1, und damit die alternierende Summe
+auswerten mit dem Hinweis, dass k gerade ist, also ist k+1 +1 auch gerade und das Vorzeichen der Summe ist positiv.
+-/
 
 /-
 zweite Ungleichung, vermutlich analog zur ersten lösbar, sobald ich die erste gelöst habe
 trunkierte Version im ungeraden Fall
 -/
-theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0):
+theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) ():
    ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
@@ -261,15 +297,15 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
       (-1 : ℤ) ^ (#t.1 + 1) * #(t.1.inf' (mem_filter.1 t.2).2 S) := by
   simpa using inclusion_exclusion_sum_biUnion (G := ℤ) s S (f := 1)
 
-theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α):
-    #(s.biUnion S) ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (k : ℕ):
+    (#(s.biUnion S) : ℤ) ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
-  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1)
+  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1) k
 
-theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α):
-    #(s.biUnion S) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
+theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (r : ℕ):
+    (#(s.biUnion S) : ℤ) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
-  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1)
+  simpa using incl_excl_card_biUnion_trunk_odd (G := ℤ) s S (f := 1) r
 
 
 variable [Fintype α]
@@ -281,3 +317,48 @@ theorem Finset.sum_attach {ι : Type u_1} {M : Type u_4} [AddCommMonoid M] (s : 
 
 
 end Finset
+
+/-
+Tipps von Nima:
+(1) Eine einfache Methode die manchmal funktioniert sind die Fragezeichen Taktiken,
+also man kann die Taktiken 'exact?', 'apply?' und 'simp?' und das sucht in Mathlib und macht
+manchmal gute Vorschläge.
+
+(2) Wie du erwähnt hast, gibt es die zwei Webseiten <https://www.moogle.ai/> und
+<https://loogle.lean-lang.org/> die sozusagen Databases sind für Lean. Ich benutze die zwei auch
+nicht so oft, aber anscheinend hilft es vielen weiter. In <https://www.moogle.ai/> kann man Sätze
+(auf Englisch) eingeben und es versucht mit einer KI Methode passende Sätze in Mathlib zu finden.
+In <https://loogle.lean-lang.org/> musst du die richtigen Lean Namen eingeben, was schwieriger sein
+kann. Ist wahrscheinlich ein Versuch Wert.
+
+(3) Wenn du VS Code benutzt kannst du (glaube ich) Github Copilot auf deinem Computer freischalten,
+das versucht automatisch Vorschläge zu machen wenn du etwas schreibst. Ist nicht immer richtig,
+kann aber weiterhelfen. Das nutze ich sehr oft, und manchmal hat es mir wirklich weitergeholfen.
+
+(4) Eine direktere KI Methode (die du wahrscheinlich schon versucht hast ist), ist einfach direkt
+ChatGPT zu fragen. 'Ich will dieses Ergebnis in Lean' und dann kann man es direkt beschreiben.
+
+(5) Manchmal hilft es Ergebnis das man will als Satz in Lean aufzuschreiben also
+
+lemma test : 'das Ding das wir wollen' := by sorry
+
+Dann benutzt man es wo man will und versucht später diese Lücken zu füllen.
+
+(6) Es kann helfen Schritt (5) mit Schritt (1), (3) oder (4) zu kombinieren. Also man schreibt
+explizit in Lean was man will (so wie in (5) beschrieben) und dann kann man die Fragezeichen
+Taktiken (simp? oder apply?), oder KI in Github Copilot direkt, oder auf einer Webseite fragen
+ob es einen Beweis dazu gibt.
+
+Im Endeffekt muss man leider ein bisschen rumprobieren, und für verschiedene Menschen funktionieren
+verschiedene Optionen besser.
+
+Zum Beispiel, für deine Frage über nicht-negative habe ich genau ChatGPT gefragt. Nämlich:
+
+'I want a proof that if f i are bigger equal the identity, then so is the sum. Is there a term
+in Mathlib for this?'
+Die Antwort war:
+'Finset.sum_nonneg.{u_1, u_5} {ι : Type u_1} {N : Type u_5} [AddCommMonoid N] [PartialOrder N]
+[IsOrderedAddMonoid N] {f : ι → N} {s : Finset ι} (h : ∀ i ∈ s, 0 ≤ f i) : 0 ≤ ∑ i ∈ s, f i'
+
+Also ist der Vorschlag Finset.sum_nonneg was (glaube ich) die gewünschte Antwort ist?
+-/
