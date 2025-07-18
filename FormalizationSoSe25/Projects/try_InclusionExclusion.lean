@@ -188,6 +188,32 @@ da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion,
 oder gleich bleiben.
 -> weiß nur noch nicht wie ich das in lean beweisen soll/kann. -/
 
+/-
+Alternative Idee: A_k erstmal definieren und dann zeigen dass f(A_k) ≥ f(A_{k+1}) für alle k.
+-/
+
+
+/-
+vgl. lecture 4 Definitionen für Sets, habe versucht sie für Finsets anzupassen
+-/
+
+/-- Class for the `sInf` operator -/
+class InfFinset (α : Type*) where
+  /-- Infimum of a set -/
+  fsInf : Finset α → α
+
+export InfFinset (fsInf)
+
+/-- Indexed infimum -/
+def fsiInf [InfFinset α] (s : ι → α) : α :=
+  fsInf (range s)
+
+/-- begrenzter Schnitt-/
+def A_k (s: ι → α ) (k : ℕ) (t : Finset ι):=
+{a ∈ Finset α | ∀ i ∈ t, a ∈ s i ∧ Finset.card t = k}
+
+
+
 lemma sum_int_function (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) (k : ℕ) (evenk: 2 ∣ k):
 ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a ≥
