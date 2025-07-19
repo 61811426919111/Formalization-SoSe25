@@ -50,54 +50,13 @@ namespace Finset
 variable {ι α G : Type*} [DecidableEq α] [AddCommGroup G] {s : Finset ι}
 
 lemma prod_indicator_biUnion_sub_indicator (hs : s.Nonempty) (S : ι → Finset α) (a : α) :
-/-
-hs -> Annahme, dass Menge s nicht leer ist
-S -> Funktion, die jedem Element i vom Typ ι eine endliche Menge (Finset α) zuordnet
--> man hat eine Familie von endlichen Mengen, die durch S beschrieben wird
-a : α -> a ist ein Element der Menge α, auf die sich die Indikatorfunktionen beziehen
--/
     ∏ i ∈ s, (Set.indicator (s.biUnion S) 1 a - Set.indicator (S i) 1 a) = (0 : ℤ) := by
-    /-
-    ∏ i ∈ s -> Das ist das Produkt über alle i in der Menge s
-    Set.indicator (s.biUNion S) 1 a -> Indikatorfunktion, ist 1 wenn a in s.biUnion S ist und 0 sonst
-    s.biUnion S -> Vereinigung aller Mengen S i
-    S i -> Menge die i durch die Funktion S zugeordnet wird
-    Set.indicator (S i) 1 a -> Indikatorfunktion, ist 1 wenn a in S i ist und 0 sonst
-    -/
   by_cases ha : a ∈ s.biUnion S
-  /-
-  Fallunterscheidung:
-  Fall 1 ha ist wahr, d.h. a ist in der Vereinigung s.biUnion S
-  Fall 2: ha ist falsch, d.h. a ist nicht in der Vereinigun s.biUnion S
-  -/
   · obtain ⟨i, hi, ha⟩ := mem_biUnion.1 ha
-    /-
-    i ist von Typ ι
-    hi: i ∈ s
-    ha: a ∈ S i
-    -/
     exact prod_eq_zero hi <| by simp [*, -coe_biUnion]
-    /-
-    Finset.prod_eq_zero:  (hi : i ∈ s) (h : f i = 0) : ∏ j ∈ s, f j = 0
-    "<|"" -> Pipe-Operator wie in R: f <| g <| x means f(g(x))
-    simp[*] -> rewrite with all hypothesis
-    Finset.coe_biUnion: ↑(s.biUnion t) = ⋃ x ∈ ↑s, ↑(t x)
-    -/
   · obtain ⟨i, hi⟩ := hs
-    /-
-    i : ι -> i ist vom Typ ι
-    hi : i ∈ s
-    -/
     have ha : a ∉ S i := fun h ↦ ha <| subset_biUnion_of_mem _ hi h
-    /-
-    Finset.subset_biUNion_of_mem:
-    {s : Finset α} [DecidableEq β] (u : α → Finset β) {x : α} (xs : x ∈ s) :
-    u x ⊆ s.biUnion u
-    -/
     exact prod_eq_zero hi <| by simp [*, -coe_biUnion]
-    /-
-    s.oben
-    -/
 
 /-- **Inclusion-exclusion principle** for the sum of a function over a union.
 
@@ -188,6 +147,7 @@ da für t=k+1 f a in beiden Mengen gleich ist und f eine nichtnegative Funktion,
 oder gleich bleiben.
 -> weiß nur noch nicht wie ich das in lean beweisen soll/kann. -/
 
+
 /-
 Alternative Idee: A_k erstmal definieren und dann zeigen dass f(A_k) ≥ f(A_{k+1}) für alle k.
 -/
@@ -209,8 +169,8 @@ def fsiInf [InfFinset α] (s : ι → α) : α :=
   fsInf (range s)
 
 /-- begrenzter Schnitt-/
-def A_k (s: ι → α ) (k : ℕ) (t : Finset ι):=
-{a ∈ Finset α | ∀ i ∈ t, a ∈ s i ∧ Finset.card t = k}
+def A_k (A : Finset α) (s : ι → Finset α) (k : ℕ) (t : Finset ι) (ht : t.card = k) (knneg: 0 < k): Finset α :=
+  {a ∈ A| ∀ i ∈ t, a ∈ s i}
 
 
 
