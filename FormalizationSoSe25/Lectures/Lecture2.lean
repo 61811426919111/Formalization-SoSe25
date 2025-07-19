@@ -350,7 +350,7 @@ Here are some tricks for that:
 
 #check ℕ
 
--- Moogle and loogle search the internet for suggestions.
+-- Moogle and loogle search the internet for suggestions (Empfehlungen, Vorschläge).
 #moogle "The sum of two even numbers is even."
 
 #loogle "Existential"

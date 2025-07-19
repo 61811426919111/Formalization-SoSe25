@@ -44,6 +44,7 @@ section indexed_operations
 
 -- For the exercises in this section you will need to use:
 #check Set.mem_iUnion
+#check Set.mem_iInter
 #check Set.mem_inter_iff
 
 /- You can use them directly, but it's probably easier to use:
@@ -53,10 +54,28 @@ section indexed_operations
 -/
 
 example {α I : Type} (A : I → Set α)  (s : Set α) : (s ∩ ⋃ i, A i) = ⋃ i, A i ∩ s := by
-  sorry
+  ext x
+  simp
+  constructor
+  · intro hx
+    obtain ⟨xs, xi⟩ := hx
+    use xi
+  · rintro ⟨xi, xs⟩
+    use xs
 
 example {α I : Type} (A B : I → Set α) : (⋂ i, A i ∩ B i) = (⋂ i, A i) ∩ ⋂ i, B i := by
-  sorry
+  ext x
+  simp
+  constructor
+  · intro hx
+    constructor
+    intro i
+    exact (hx i).1
+    intro i
+    exact (hx i).2
+  · intro hx
+    intro i
+    exact ⟨hx.1 i, hx.2 i⟩
 
 example {α I : Type} (A : I → Set α) (s : Set α) : (s ∪ ⋂ i, A i) = ⋂ i, A i ∪ s := by
   sorry

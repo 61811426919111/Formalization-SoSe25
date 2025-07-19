@@ -12,7 +12,7 @@ variable (a b c : Nat)
 
 -- Use the function Nat.add_assoc to complete this exercise.
 -- (Do not use any tactics!)
-def exercise1 : (a * b) * c = a * (b * c) := sorry
+def exercise1 : (a * b) * c = a * (b * c) := Nat.mul_assoc a b c
 
 -- Of course, if a = b, then we must also have b = a
 -- In fact there is a function for that:
@@ -20,7 +20,7 @@ def exercise1 : (a * b) * c = a * (b * c) := sorry
 
 -- Compose your solution to the first question and Eq.symm to solve the following:
 -- (Do not use any tactics!)
-def exercise2:  a * (b * c) = (a * b) * c := sorry
+def exercise2:  a * (b * c) = (a * b) * c :=  Eq.symm (Nat.mul_assoc a b c)
 
 -- We have seen addition and multiplication of natural numbers.
 -- Of course they are also distributive.
@@ -32,7 +32,8 @@ def exercise2:  a * (b * c) = (a * b) * c := sorry
 #check Nat.mul_comm
 -- So we should be able to prove right distributivity directly.
 -- That's hard! Let's try some first step towards it:
-def exercise3 : (b + c) * a  = a * b + a * c:= sorry
+def exercise3 : (b + c) * a  = a * b + a * c:= Nat.mul_comm a b ▸ Nat.mul_comm a c ▸ Nat.right_distrib b c a
+-- andere Lösung: Eq.trans (Nat.mul_comm (b + c) a) (Nat.left_distrib a b c)
 
 -- How about actual right distributivity?
 -- That's hard with direct methods and we will see how to tackle it with tactics!
@@ -43,16 +44,27 @@ def exercise3 : (b + c) * a  = a * b + a * c:= sorry
 -- to the right-hand side.
 
 -- Let's try this out with the first exercise:
-def exercise1tactics : (a * b) * c = a * (b * c) := by sorry
+def exercise1tactics : (a * b) * c = a * (b * c) := by
+rw [Nat.mul_assoc]
   -- use the tactic `rw` to rewrite the left-hand side
 
   -- If you are confused, Solution for exercise1tactics:
   -- rw [Nat.mul_assoc a b c]
 
 -- Now use `rw` simililarly to solve the other two exercises:
-def exercise2tactics:  a * (b * c) = (a * b) * c := by sorry
+def exercise2tactics:  a * (b * c) = (a * b) * c := by
+rw [Nat.mul_assoc]
+-- bzw. rw [Nat.mul_assoc a b c]
 
-def exercise3tactics : (b + c) * a  = a * b + a * c:= by sorry
+def exercise3tactics : (b + c) * a  = a * b + a * c:= by
+rw [Nat.mul_comm (b+c) a, Nat.left_distrib]
+-- bzw. rw [Nat.mul_comm (b + c) a]
+--      rw [Nat.left_distrib a b c]
 
 -- Now, we can use the `rw` tactic to solve the exercise 4:
-def exercise4 : (b + c) * a  = b * a + c * a:= by sorry
+def exercise4 : (b + c) * a  = b * a + c * a:= by
+rw [Nat.right_distrib] -- eigentlich soll nicht Nat.right_distrib benutzt sondern erst bewiesen werden
+-- bzw. rw [Nat.mul_comm (b + c) a]
+--      rw [Nat.left_distrib a b c]
+--      rw [Nat.mul_comm a b]
+--      rw [Nat.mul_comm a c]
