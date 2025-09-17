@@ -207,7 +207,7 @@ variable (evenk : 2 ∣ k) (oddr : ¬ 2 ∣ r) (r k : ℕ)
 
 -- die erste Ungleichung die gezeigt werden soll, gerader Fall der trunkierten Version
 theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf : ∀ a, f a ≥ 0) (evenk : 2 ∣ k) :
-   ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+   ∑ a ∈ s.biUnion S, f a ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k), -- hier vllt besser = statt kleinergleich
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
   rw [sub_nonneg_ge]
