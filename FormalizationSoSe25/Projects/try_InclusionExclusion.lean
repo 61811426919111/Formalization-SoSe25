@@ -170,11 +170,15 @@ def fsiInf [InfFinset α] (s : ι → α) : α :=
 
 /-- begrenzter Schnitt-/
 def A_k (A : Finset α) (s : ι → Finset α) (k : ℕ) (t : Finset ι) (ht : t.card = k) (knneg: 0 < k): Finset α :=
-  {a ∈ A| ∀ i ∈ t, a ∈ s i}
+  {a ∈ A| ∀ i ∈ t, a ∈ s i ∧ ht ∧ knneg}
+
+def trunk : Finset α → ℕ → Finset α
+  | ⟨Finset.1, k⟩ =>  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+(-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a
 
 /-- zweite Idee: trunkierte Version: T  statt A damit keine Verwechslungsgefahr-/
 def T k (A : Finset α) (s : ι → Finset α) (k : ℕ) (t : Finset ι) (ht : t.card = k)
-(knnon: 0 < k): ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+(knneg: 0 < k): ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
 (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a
 
 
