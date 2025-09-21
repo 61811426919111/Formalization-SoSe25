@@ -256,10 +256,16 @@ theorem incl_excl_sum_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) 
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ k+1),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by exact rfl
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
-      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
-      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k+1),
-      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
-  _≥ 0 := by sorry
+      (-1) ^ (k+1 +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  (-1) ^ (k+2) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by apply [evenk]
+  _≥  0 := by apply [hf]
+
+/- für das vorletzte sorry fehlt mir noch die Abschätzung, dass der Schnitt über die ersten
+t Mengen den Schnitt über die ersten t+1 Mengen enthält. Muss dazu die Indexfunktion bijektiv sein
+oder kann man das annehmen, dass die S A alle verschieden sind o.B.d.A. durch Verschiebung des Index
+bei Gleichheit?-/
+
 
 /-
 da erste Summe größer zweite Summe ist Differenz (da zweite Summe durch (-1) ein negatives Vorzeichen bekommt)
