@@ -296,15 +296,53 @@ auswerten mit dem Hinweis, dass k gerade ist, also ist k+1 +1 auch gerade und da
 zweite Ungleichung, vermutlich analog zur ersten lösbar, sobald ich die erste gelöst habe
 trunkierte Version im ungeraden Fall
 -/
-theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) ():
+theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (f : α → G) (hf: ∀ a, f a ≥ 0) (oddk : ¬ (2∣k)):
    ∑ a ∈ s.biUnion S, f a ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
       (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by
   classical
   rw [← sub_nonneg]
   calc
-    (∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
-      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a) - ∑ a ∈ s.biUnion S, f a
-      = sorry
+   0 ≥ ∑ a ∈ s.biUnion S, f a -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a
+  _=  ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ (#t + 1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by rw [inclusion_exclusion_sum_biUnion]
+  _=  ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ (#t.1 + 1) • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a +
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
+  _=  - ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ #t.1 • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a +
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a  := by simp [pow_succ]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      ∑ t : s.powerset.filter (·.Nonempty),
+      (-1) ^ #t.1 • ∑ a ∈ t.1.inf' (mem_filter.1 t.2).2 S, f a := by simp [← sub_eq_neg_add]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a -
+      (∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a +
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a) := by sorry
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, (f a - f a) -
+      ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [sub_eq_neg_add]
+  _=  - ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≥ k+1),
+      (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by exact rfl
+  _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t = k+1),
+      (-1) ^ (k+1 +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  (-1) ^ (k+2) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by sorry
+  _=  (-1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by apply [oddk]
+  _=  -∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
+  _≤  0 := by apply [hf]
 
 
 /-- **Inclusion-exclusion principle** for the cardinality of a union.
@@ -316,15 +354,15 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
       (-1 : ℤ) ^ (#t.1 + 1) * #(t.1.inf' (mem_filter.1 t.2).2 S) := by
   simpa using inclusion_exclusion_sum_biUnion (G := ℤ) s S (f := 1)
 
-theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (k : ℕ):
+theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (r : ℕ):
     (#(s.biUnion S) : ℤ) ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
-  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (f := 1) k
+  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (ι := ℕ) (f := 1) (k := 2*r)
 
-theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (r : ℕ):
+theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (r : ℕ) (oddk : ¬ (2∣k)):
     (#(s.biUnion S) : ℤ) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
-  simpa using incl_excl_card_biUnion_trunk_odd (G := ℤ) s S (f := 1) r
+  simpa using incl_excl_card_biUnion_trunk_odd (G := ℤ) s S (f := 1) (k := 2*r+1)
 
 /-
 hier bei den Kardinalitäten weiß ich nicht weiter. Iwie stimmt mein Syntax noch nicht,
@@ -333,10 +371,6 @@ theoretisch muss ich nämlich nur die ungleichungen anwenden, aber Lean versteh 
 
 
 variable [Fintype α]
-
-
-
-
 
 end Finset
 
