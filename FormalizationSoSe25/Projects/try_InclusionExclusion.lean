@@ -331,7 +331,7 @@ theorem incl_excl_sum_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, (f a - f a) -
       ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [sub_eq_neg_add]
-  _=  - ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
+  _=  -∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ #t • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp
   _=  ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t > k),
       (-1) ^ (#t +1) • ∑ a ∈ t.inf' (mem_filter.1 tcond).2.1 S, f a := by simp [pow_succ]
@@ -354,19 +354,20 @@ theorem inclusion_exclusion_card_biUnion (s : Finset ι) (S : ι → Finset α) 
       (-1 : ℤ) ^ (#t.1 + 1) * #(t.1.inf' (mem_filter.1 t.2).2 S) := by
   simpa using inclusion_exclusion_sum_biUnion (G := ℤ) s S (f := 1)
 
-theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (r : ℕ):
+theorem incl_excl_card_biUnion_trunk_even (s : Finset ι) (S : ι → Finset α) (r : ℕ) (evenk : 2∣k):
     (#(s.biUnion S) : ℤ) ≥ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
-  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) s S (ι := ℕ) (f := 1) (k := 2*r)
+  simpa using incl_excl_sum_biUnion_trunk_even (G := ℤ) (s : Finset.{0}ℕ) S (ι := ℕ) (f := 1) (k := 2*r)
 
 theorem incl_excl_card_biUnion_trunk_odd (s : Finset ι) (S : ι → Finset α) (r : ℕ) (oddk : ¬ (2∣k)):
-    (#(s.biUnion S) : ℤ) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ r),
+    (#(s.biUnion S) : ℤ) ≤ ∑ ⟨t, tcond⟩ : s.powerset.filter (fun t => t.Nonempty ∧ Finset.card t ≤ k),
       (-1 : ℤ) ^ (#t + 1) * #(t.inf' (mem_filter.1 tcond).2.1 S) := by
   simpa using incl_excl_card_biUnion_trunk_odd (G := ℤ) s S (f := 1) (k := 2*r+1)
 
 /-
 hier bei den Kardinalitäten weiß ich nicht weiter. Iwie stimmt mein Syntax noch nicht,
 theoretisch muss ich nämlich nur die ungleichungen anwenden, aber Lean versteh noch nicht wie ich das meine.
+interessant ist auch, dass lean sich bei beiden Ungleichungen an etwas anderem stört ...
 -/
 
 
